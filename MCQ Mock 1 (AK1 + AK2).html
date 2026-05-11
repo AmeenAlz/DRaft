@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Year 1 Medical Assessment</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animation-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons (SVG Components) ---
+        const CheckCircle = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        );
+        const XCircle = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        );
+        const ChevronRight = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>
+        );
+        const RotateCcw = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        );
+        const Brain = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+        );
+        const Activity = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        );
+        const BookOpen = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        );
+        const Zap = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        );
+        const Globe = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        );
+        const Shield = ({size=24, className=""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        );
+
+        // --- Data ---
+        const questions = [
+            // --- ANATOMY (AK2) ---
+            {
+                id: 1,
+                category: "Anatomy",
+                stem: "A 25-year-old man is involved in a road traffic accident. On examination, a distinct palpable bony landmark is identified at the junction of the manubrium and the body of the sternum. This landmark is used to locate the second costal cartilage.",
+                leadIn: "At which vertebral level does this landmark lie?",
+                options: [
+                "T2/T3",
+                "T4/T5",
+                "T7/T8",
+                "T9/T10",
+                "T12/L1"
+                ],
+                correctIndex: 1,
+                explanation: "The Sternal Angle (Angle of Louis) is located at the vertebral level T4/T5. It marks the attachment of the 2nd costal cartilage, the bifurcation of the trachea (carina), and the beginning/end of the aortic arch."
+            },
+            {
+                id: 2,
+                category: "Anatomy",
+                stem: "During a surgical procedure on the neck, a surgeon takes care to identify and preserve the nerve that supplies the intrinsic muscles of the larynx. This nerve loops under the arch of the aorta on the left side.",
+                leadIn: "Which nerve is being described?",
+                options: [
+                "Superior laryngeal nerve",
+                "Right recurrent laryngeal nerve",
+                "Left recurrent laryngeal nerve",
+                "Phrenic nerve",
+                "Vagus nerve (main trunk)"
+                ],
+                correctIndex: 2,
+                explanation: "The Left Recurrent Laryngeal nerve loops under the Aortic Arch, whereas the Right Recurrent Laryngeal nerve loops under the Subclavian Artery. It supplies all intrinsic muscles of the larynx except the cricothyroid."
+            },
+            {
+                id: 3,
+                category: "Anatomy",
+                stem: "A patient presents with difficulty breathing. Radiographic imaging reveals a mass compressing the structure located directly anterior to the bronchus at the hilum of the right lung.",
+                leadIn: "Based on the RALS mnemonic, which structure is most likely affected?",
+                options: [
+                "Right Pulmonary Artery",
+                "Right Pulmonary Vein",
+                "Azygos Vein",
+                "Superior Vena Cava",
+                "Right Phrenic Nerve"
+                ],
+                correctIndex: 0,
+                explanation: "According to the RALS mnemonic for the lung hilum: Right Pulmonary Artery is Anterior to the bronchus; Left Pulmonary Artery is Superior to the bronchus."
+            },
+            {
+                id: 4,
+                category: "Anatomy",
+                stem: "A patient sustains a knife wound to the neck. Subsequent examination reveals paralysis of the diaphragm on the affected side.",
+                leadIn: "Which spinal nerve roots contribute to the nerve that has been damaged?",
+                options: [
+                "C1, C2, C3",
+                "C3, C4, C5",
+                "C5, C6, C7",
+                "T1, T2, T3",
+                "T8, T9, T10"
+                ],
+                correctIndex: 1,
+                explanation: "The diaphragm is innervated by the Phrenic Nerve, which originates from spinal roots C3, C4, and C5 ('C3, 4, 5 keeps the diaphragm alive')."
+            },
+
+            // --- PHYSIOLOGY (AK1/AK2) ---
+            {
+                id: 5,
+                category: "Physiology",
+                stem: "A premature infant born at 28 weeks gestation develops severe respiratory distress shortly after birth. The condition is attributed to high alveolar surface tension causing atelectasis.",
+                leadIn: "Which specific cell type is responsible for producing the substance deficient in this infant?",
+                options: [
+                "Type I Pneumocytes",
+                "Type II Pneumocytes",
+                "Alveolar Macrophages",
+                "Club Cells",
+                "Goblet Cells"
+                ],
+                correctIndex: 1,
+                explanation: "Type II Pneumocytes secrete Surfactant (containing DPPC), which reduces surface tension to prevent alveolar collapse. Type I cells are for gas exchange."
+            },
+            {
+                id: 6,
+                category: "Physiology",
+                stem: "A mountaineer ascends rapidly to high altitude. To compensate for the lower partial pressure of oxygen, he begins to hyperventilate. This leads to a shift in the oxygen dissociation curve.",
+                leadIn: "Which change in blood parameters would cause a 'Left Shift' (increased affinity) of the oxygen dissociation curve?",
+                options: [
+                "Increased Temperature",
+                "Increased 2,3-DPG",
+                "Increased H+ concentration (Acidosis)",
+                "Increased PaCO2",
+                "Decreased PaCO2 (Alkalosis)"
+                ],
+                correctIndex: 4,
+                explanation: "A Left Shift (increased affinity) is caused by Low CO2, Alkalosis (Low H+), Low Temp, or Low 2,3-DPG. Hyperventilation lowers PaCO2, causing alkalosis and a left shift to load more O2 in the lungs."
+            },
+            {
+                id: 7,
+                category: "Physiology",
+                stem: "In the renal system, a specific segment of the nephron is responsible for generating a hyperosmolar medullary gradient. This segment is impermeable to water but actively pumps Na+, K+, and Cl- out of the filtrate.",
+                leadIn: "Identify this nephron segment.",
+                options: [
+                "Proximal Convoluted Tubule",
+                "Descending Limb of Loop of Henle",
+                "Ascending Limb of Loop of Henle",
+                "Distal Convoluted Tubule",
+                "Collecting Duct"
+                ],
+                correctIndex: 2,
+                explanation: "The Ascending Limb of the Loop of Henle is impermeable to water and actively pumps Na+/K+/2Cl- out, creating the concentration gradient. The Descending limb is permeable to water."
+            },
+
+            // --- PHARMACOLOGY (AK1/AK2) ---
+            {
+                id: 8,
+                category: "Pharmacology",
+                stem: "A patient with asthma is prescribed Salbutamol for acute relief of symptoms. This drug acts by binding to a specific receptor to cause smooth muscle relaxation.",
+                leadIn: "What is the primary mechanism of action of this drug?",
+                options: [
+                "Antagonist at Muscarinic M3 receptors",
+                "Agonist at Alpha-1 adrenergic receptors",
+                "Agonist at Beta-2 adrenergic receptors",
+                "Inhibitor of Phosphodiesterase",
+                "Blocker of Calcium channels"
+                ],
+                correctIndex: 2,
+                explanation: "Salbutamol is a Short-Acting Beta-Agonist (SABA). It stimulates Beta-2 receptors, increasing cAMP and causing smooth muscle relaxation (bronchodilation)."
+            },
+            {
+                id: 9,
+                category: "Pharmacology",
+                stem: "A drug has a high affinity for a receptor but lacks intrinsic activity. When it binds, it prevents the endogenous ligand from binding and producing an effect.",
+                leadIn: "Which term best describes this drug?",
+                options: [
+                "Full Agonist",
+                "Partial Agonist",
+                "Inverse Agonist",
+                "Competitive Antagonist",
+                "Allosteric Modulator"
+                ],
+                correctIndex: 3,
+                explanation: "An Antagonist has affinity but NO intrinsic activity (efficacy = 0). A Competitive Antagonist binds reversibly to the same site as the agonist."
+            },
+            {
+                id: 10,
+                category: "Pharmacology",
+                stem: "A patient is prescribed a drug that is known to be a potent enzyme inducer of the CYP450 system (e.g., Rifampicin). They are also taking Warfarin.",
+                leadIn: "What is the likely clinical consequence of this interaction?",
+                options: [
+                "Increased plasma concentration of Warfarin; increased bleeding risk",
+                "Decreased plasma concentration of Warfarin; increased clotting risk",
+                "Increased absorption of Warfarin from the gut",
+                "Decreased renal excretion of Warfarin",
+                "No change in Warfarin efficacy"
+                ],
+                correctIndex: 1,
+                explanation: "Enzyme inducers (like Rifampicin) increase the expression of CYP450 enzymes. This speeds up the metabolism of other drugs (like Warfarin), leading to lower plasma levels and potential treatment failure (clots)."
+            },
+
+            // --- PATHOLOGY & ONCOLOGY (AK1/AK2) ---
+            {
+                id: 11,
+                category: "Pathology",
+                stem: "A chronic smoker undergoes a bronchial biopsy. Histology reveals that the normal pseudostratified ciliated columnar epithelium has been replaced by stratified squamous epithelium.",
+                leadIn: "What is the correct term for this adaptive change?",
+                options: [
+                "Hyperplasia",
+                "Hypertrophy",
+                "Metaplasia",
+                "Dysplasia",
+                "Neoplasia"
+                ],
+                correctIndex: 2,
+                explanation: "Metaplasia is the adaptive, reversible change where one mature cell type differentiates into another mature cell type in response to stress (e.g., squamous metaplasia in airways due to smoking)."
+            },
+            {
+                id: 12,
+                category: "Pathology",
+                stem: "A patient presents with a persistent cough and weight loss. A chest X-ray shows a mass. Biopsy confirms malignancy. Staging classifies the tumour as T2 N1 M0.",
+                leadIn: "What does 'N1' indicate in the TNM staging system?",
+                options: [
+                "No regional lymph node metastasis",
+                "Distant metastasis to one organ",
+                "Involvement of regional lymph nodes",
+                "Tumour has invaded the chest wall",
+                "Tumour is less than 2cm in size"
+                ],
+                correctIndex: 2,
+                explanation: "In the TNM system, N refers to Nodes. N0 is no involvement, while N1-3 indicates increasing extent of regional lymph node involvement. M0 indicates no distant metastasis."
+            },
+            {
+                id: 13,
+                category: "Pathology",
+                stem: "A 45-year-old woman presents with a breast lump. A core biopsy shows malignant cells that have breached the basement membrane and are invading the surrounding stroma.",
+                leadIn: "Which feature distinguishes this from Ductal Carcinoma In Situ (DCIS)?",
+                options: [
+                "Presence of microcalcifications",
+                "Loss of myoepithelial cell layer",
+                "High nuclear grade",
+                "Overexpression of HER2",
+                "Presence of necrosis"
+                ],
+                correctIndex: 1,
+                explanation: "The key distinction between In-Situ and Invasive carcinoma is the integrity of the basement membrane. In invasive carcinoma, the basement membrane is breached and the myoepithelial cell layer is lost."
+            },
+
+            // --- GENETICS (AK1) ---
+            {
+                id: 14,
+                category: "Genetics",
+                stem: "A couple attends a genetic clinic. The father has an Autosomal Dominant condition (heterozygous). The mother is unaffected.",
+                leadIn: "What is the risk of their child inheriting the condition?",
+                options: [
+                "0%",
+                "25%",
+                "50%",
+                "75%",
+                "100%"
+                ],
+                correctIndex: 2,
+                explanation: "In Autosomal Dominant inheritance, if one parent is affected (heterozygous, Aa) and the other is unaffected (aa), each offspring has a 50% risk of inheriting the 'A' allele and the condition."
+            },
+            {
+                id: 15,
+                category: "Genetics",
+                stem: "A child is diagnosed with Down Syndrome. Karyotyping reveals three copies of chromosome 21.",
+                leadIn: "Which term describes this chromosomal abnormality?",
+                options: [
+                "Monosomy",
+                "Triploidy",
+                "Aneuploidy",
+                "Translocation",
+                "Inversion"
+                ],
+                correctIndex: 2,
+                explanation: "Aneuploidy refers to an incorrect number of chromosomes (e.g., Trisomy 21). Triploidy would imply three whole sets of the genome (69 chromosomes)."
+            },
+
+            // --- HAEMATOLOGY (AK1) ---
+            {
+                id: 16,
+                category: "Haematology",
+                stem: "A 30-year-old woman presents with fatigue. Her Full Blood Count (FBC) shows: Hb 90 g/L (Low), MCV 72 fL (Low), MCH 24 pg (Low).",
+                leadIn: "What is the most likely diagnosis based on this pattern?",
+                options: [
+                "Vitamin B12 Deficiency",
+                "Folate Deficiency",
+                "Iron Deficiency Anaemia",
+                "Acute Blood Loss",
+                "Haemolytic Anaemia"
+                ],
+                correctIndex: 2,
+                explanation: "The pattern of Microcytic (Low MCV) and Hypochromic (Low MCH) anaemia is classic for Iron Deficiency Anaemia (or Thalassemia). B12/Folate deficiency causes Macrocytic anaemia."
+            },
+            {
+                id: 17,
+                category: "Haematology",
+                stem: "A patient on Warfarin for atrial fibrillation presents with a minor bleed. The INR is elevated. Warfarin acts by inhibiting the synthesis of Vitamin K-dependent clotting factors.",
+                leadIn: "Which of the following is a Vitamin K-dependent factor?",
+                options: [
+                "Factor I",
+                "Factor V",
+                "Factor VII",
+                "Factor VIII",
+                "Factor XI"
+                ],
+                correctIndex: 2,
+                explanation: "The Vitamin K-dependent clotting factors are II, VII, IX, and X. Warfarin inhibits their synthesis. Factor VII has the shortest half-life, affecting the PT/INR first."
+            },
+
+            // --- IMMUNOLOGY (AK1/AK2) ---
+            {
+                id: 18,
+                category: "Immunology",
+                stem: "A patient experiences an acute allergic reaction (anaphylaxis) to peanuts. This is a Type I hypersensitivity reaction.",
+                leadIn: "Which antibody isotype mediates the sensitization and subsequent degranulation of mast cells in this reaction?",
+                options: [
+                "IgA",
+                "IgD",
+                "IgE",
+                "IgG",
+                "IgM"
+                ],
+                correctIndex: 2,
+                explanation: "Type I Hypersensitivity is mediated by IgE antibodies. During sensitization, IgE binds to Fc receptors on Mast Cells. Upon re-exposure, the allergen cross-links the IgE, triggering degranulation."
+            },
+            {
+                id: 19,
+                category: "Immunology",
+                stem: "A newborn baby receives antibodies from their mother across the placenta during pregnancy.",
+                leadIn: "Which type of immunity does this represent?",
+                options: [
+                "Natural Active Immunity",
+                "Artificial Active Immunity",
+                "Natural Passive Immunity",
+                "Artificial Passive Immunity",
+                "Innate Immunity"
+                ],
+                correctIndex: 2,
+                explanation: "This is Natural Passive Immunity. It is 'Natural' because it occurs biologically (placenta/breast milk) and 'Passive' because the recipient receives pre-formed antibodies rather than making them."
+            },
+
+            // --- CLINICAL & RESPIRATORY (AK2) ---
+            {
+                id: 20,
+                category: "Clinical",
+                stem: "A 70-year-old man with COPD presents with worsening breathlessness. Arterial Blood Gas (ABG) analysis reveals: PaO2 7.5 kPa (Low), PaCO2 7.0 kPa (High), pH 7.30 (Low).",
+                leadIn: "How would you classify this respiratory failure?",
+                options: [
+                "Type 1 Respiratory Failure",
+                "Type 2 Respiratory Failure",
+                "Metabolic Acidosis",
+                "Respiratory Alkalosis",
+                "Compensated Respiratory Acidosis"
+                ],
+                correctIndex: 1,
+                explanation: "Type 2 Respiratory Failure ('Pump Failure') is defined by Hypoxia (PaO2 < 8) WITH Hypercapnia (PaCO2 > 6.0). The low pH indicates uncompensated respiratory acidosis."
+            },
+            {
+                id: 21,
+                category: "Clinical",
+                stem: "A young man is brought to ED after a stabbing. He is hypotensive and tachycardic. The trachea is deviated to the left, and breath sounds are absent on the right.",
+                leadIn: "What is the most likely diagnosis?",
+                options: [
+                "Simple Pneumothorax",
+                "Tension Pneumothorax",
+                "Pleural Effusion",
+                "Lobar Pneumonia",
+                "Pulmonary Embolism"
+                ],
+                correctIndex: 1,
+                explanation: "Tension Pneumothorax acts as a one-way valve. Air enters but cannot escape, building pressure that shifts the mediastinum (tracheal deviation) and compresses the heart (hypotension/shock)."
+            },
+            {
+                id: 22,
+                category: "Clinical",
+                stem: "You are assessing a patient with community-acquired pneumonia using the CURB-65 score. The patient is confused, Urea is 8 mmol/L, RR is 32, BP is 110/70, and Age is 72.",
+                leadIn: "What is this patient's CURB-65 score?",
+                options: [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5"
+                ],
+                correctIndex: 3,
+                explanation: "Points: Confusion (1), Urea > 7 (1), RR > 30 (1), Age > 65 (1). BP is normal (Sys >90, Dia >60), so 0 points for BP. Total Score = 4."
+            },
+
+            // --- PSYCHOLOGY & SOCIOLOGY (AK1) ---
+            {
+                id: 23,
+                category: "Psychology",
+                stem: "A medical student is extremely anxious about an upcoming exam. They decide to create a detailed revision timetable and attend extra study groups to manage the situation.",
+                leadIn: "According to the Transactional Model of stress, which type of coping strategy is this?",
+                options: [
+                "Emotion-focused coping",
+                "Problem-focused coping",
+                "Avoidance coping",
+                "Maladaptive coping",
+                "Denial"
+                ],
+                correctIndex: 1,
+                explanation: "Problem-focused coping involves active attempts to modify, reduce, or eliminate the source of stress (e.g., planning, studying). It is best when the stressor is controllable."
+            },
+            {
+                id: 24,
+                category: "Sociology",
+                stem: "Statistics show that women living in the most deprived areas of the UK are nearly 2x more likely to die during pregnancy than those in the least deprived areas.",
+                leadIn: "Which concept best describes this observation?",
+                options: [
+                "The Inverse Care Law",
+                "The Social Gradient in Health",
+                "Intergenerational Mobility",
+                "Cultural Competence",
+                "The Biopsychosocial Model"
+                ],
+                correctIndex: 1,
+                explanation: "The Social Gradient refers to the phenomenon where people who are less advantaged in terms of socioeconomic position have worse health (and shorter lives) than those who are more advantaged."
+            },
+            {
+                id: 25,
+                category: "Global Health",
+                stem: "To compare disease burden between countries, researchers use a metric that combines Years of Life Lost (YLL) due to premature mortality and Years Lived with Disability (YLD).",
+                leadIn: "What is this metric called?",
+                options: [
+                "HALE (Health-Adjusted Life Expectancy)",
+                "QALY (Quality-Adjusted Life Year)",
+                "DALY (Disability-Adjusted Life Year)",
+                "Infant Mortality Rate",
+                "Morbidity Index"
+                ],
+                correctIndex: 2,
+                explanation: "DALY (Disability-Adjusted Life Year) = YLL + YLD. It measures the loss of one year of full health."
+            },
+
+            // --- NUTRITION & METABOLISM (AK1) ---
+            {
+                id: 26,
+                category: "Nutrition",
+                stem: "A patient presents with bone pain and muscle weakness. Blood tests confirm Osteomalacia. This condition is caused by a deficiency in a specific micronutrient.",
+                leadIn: "Which micronutrient is deficient?",
+                options: [
+                "Vitamin A",
+                "Vitamin B12",
+                "Vitamin C",
+                "Vitamin D",
+                "Iron"
+                ],
+                correctIndex: 3,
+                explanation: "Vitamin D is crucial for bone health. Deficiency causes Rickets in children and Osteomalacia in adults."
+            },
+            {
+                id: 27,
+                category: "Metabolism",
+                stem: "During the 'Starved State' (>12 hours fasting), the liver produces ketone bodies (acetoacetate, beta-hydroxybutyrate).",
+                leadIn: "What is the primary physiological purpose of ketogenesis in this state?",
+                options: [
+                "To dispose of toxic ammonia",
+                "To provide an alternative fuel for the brain",
+                "To synthesize fatty acids for storage",
+                "To maintain muscle protein mass",
+                "To generate heat via thermogenesis"
+                ],
+                correctIndex: 1,
+                explanation: "Ketogenesis converts Acetyl-CoA into Ketone Bodies to provide an alternative fuel for the brain, thereby sparing glucose and reducing the need for muscle protein breakdown (gluconeogenesis)."
+            },
+
+            // --- ETHICS & PROFESSIONALISM (AK1) ---
+            {
+                id: 28,
+                category: "Ethics",
+                stem: "A 75-year-old patient with dementia needs surgery for a hip fracture. The surgeon needs to determine if the patient can consent to the procedure.",
+                leadIn: "Under the Mental Capacity Act (2005), which of the following is NOT a feature of the functional test for capacity?",
+                options: [
+                "Understand the information relevant to the decision",
+                "Retain that information long enough to decide",
+                "Weigh up the information",
+                "Communicate the decision",
+                "Make a decision that the doctor agrees with"
+                ],
+                correctIndex: 4,
+                explanation: "The four components of capacity are: Understand, Retain, Weigh up, and Communicate. A patient is allowed to make an unwise decision; disagreeing with the doctor does not mean they lack capacity."
+            },
+
+            // --- MISC / INTEGRATED ---
+            {
+                id: 29,
+                category: "Anatomy",
+                stem: "In an adult, a lumbar puncture is performed to obtain CSF. To avoid damaging the spinal cord, the needle is inserted below the level where the cord terminates.",
+                leadIn: "At which vertebral level does the spinal cord typically terminate in an adult?",
+                options: [
+                "T12/L1",
+                "L1/L2",
+                "L3/L4",
+                "L5/S1",
+                "S2"
+                ],
+                correctIndex: 1,
+                explanation: "The spinal cord terminates as the Conus Medullaris at the level of L1/L2. Below this is the Cauda Equina. Lumbar punctures are typically performed at L3/L4 or L4/L5 to be safe."
+            },
+            {
+                id: 30,
+                category: "Physiology",
+                stem: "A solution is administered IV. It causes water to move out of the red blood cells, causing them to shrink.",
+                leadIn: "How would you describe the tonicity of this solution relative to the intracellular fluid?",
+                options: [
+                "Isotonic",
+                "Hypotonic",
+                "Hypertonic",
+                "Equimolar",
+                "Hydrophilic"
+                ],
+                correctIndex: 2,
+                explanation: "A Hypertonic solution has a higher effective osmolality than the cell. Water moves out of the cell via osmosis to the area of higher solute concentration, causing the cell to shrink."
+            }
+        ];
+
+        // --- Main App Component ---
+        function App() {
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [showExplanation, setShowExplanation] = useState(false);
+            const [score, setScore] = useState(0);
+            const [quizCompleted, setQuizCompleted] = useState(false);
+            const [answers, setAnswers] = useState(new Array(questions.length).fill(null));
+
+            const currentQuestion = questions[currentQuestionIndex];
+
+            const handleOptionSelect = (index) => {
+                if (answers[currentQuestionIndex] !== null) return; // Prevent changing answer
+                
+                setSelectedOption(index);
+                const newAnswers = [...answers];
+                newAnswers[currentQuestionIndex] = index;
+                setAnswers(newAnswers);
+                
+                if (index === currentQuestion.correctIndex) {
+                    setScore(score + 1);
+                }
+                setShowExplanation(true);
+            };
+
+            const nextQuestion = () => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    setCurrentQuestionIndex(currentQuestionIndex + 1);
+                    setSelectedOption(null);
+                    setShowExplanation(false);
+                } else {
+                    setQuizCompleted(true);
+                }
+            };
+
+            const restartQuiz = () => {
+                setCurrentQuestionIndex(0);
+                setSelectedOption(null);
+                setShowExplanation(false);
+                setScore(0);
+                setQuizCompleted(false);
+                setAnswers(new Array(questions.length).fill(null));
+            };
+
+            if (quizCompleted) {
+                return (
+                    <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center font-sans text-slate-800">
+                        <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg p-8 text-center">
+                            <Activity className="w-16 h-16 mx-auto text-blue-600 mb-4" />
+                            <h2 className="text-3xl font-bold mb-4 text-slate-900">Assessment Complete!</h2>
+                            <p className="text-xl mb-6">You scored <span className="font-bold text-blue-600">{score}</span> out of <span className="font-bold">{questions.length}</span></p>
+                            
+                            <div className="w-full bg-slate-200 rounded-full h-4 mb-8">
+                                <div 
+                                    className="bg-blue-600 h-4 rounded-full transition-all duration-1000" 
+                                    style={{ width: `${(score / questions.length) * 100}%` }}
+                                ></div>
+                            </div>
+
+                            <p className="text-slate-600 mb-8">
+                                {score >= 25 ? "Excellent distinction-level performance!" : 
+                                 score >= 15 ? "Good pass. Keep reviewing the weaker areas." : 
+                                 "Keep studying! Review the core AK1 & AK2 notes."}
+                            </p>
+                            
+                            <button 
+                                onClick={restartQuiz}
+                                className="flex items-center justify-center gap-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
+                            >
+                                <RotateCcw size={20} /> Restart Assessment
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const isCorrect = selectedOption === currentQuestion.correctIndex;
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
+                    {/* Header */}
+                    <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+                        <div className="flex items-center gap-2">
+                            <Brain className="text-blue-600" size={24} />
+                            <h1 className="font-bold text-xl text-slate-900 hidden sm:block">Year 1 Med Assessment</h1>
+                            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded ml-2">SBA Mode</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm font-medium">
+                            <span className="text-slate-500">Q {currentQuestionIndex + 1} / {questions.length}</span>
+                            <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-700">Score: {score}</span>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="flex-grow p-4 sm:p-6 max-w-4xl mx-auto w-full">
+                        
+                        {/* Progress Bar */}
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 mb-6">
+                            <div 
+                                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
+                                style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                            ></div>
+                        </div>
+
+                        {/* Question Card */}
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+                            
+                            {/* Category Badge */}
+                            <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex items-center gap-2">
+                                {currentQuestion.category === "Anatomy" && <BookOpen size={16} className="text-purple-500"/>}
+                                {currentQuestion.category === "Physiology" && <Activity size={16} className="text-red-500"/>}
+                                {currentQuestion.category === "Pharmacology" && <Zap size={16} className="text-yellow-500"/>}
+                                {currentQuestion.category === "Global Health" && <Globe size={16} className="text-green-500"/>}
+                                {currentQuestion.category === "Ethics" && <Shield size={16} className="text-blue-500"/>}
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{currentQuestion.category}</span>
+                            </div>
+
+                            <div className="p-6 sm:p-8">
+                                {/* Stem */}
+                                <div className="mb-6">
+                                    <p className="text-lg sm:text-xl text-slate-800 leading-relaxed">{currentQuestion.stem}</p>
+                                </div>
+
+                                {/* Lead-in */}
+                                <div className="mb-6">
+                                    <p className="font-semibold text-slate-900">{currentQuestion.leadIn}</p>
+                                </div>
+
+                                {/* Options */}
+                                <div className="space-y-3">
+                                    {currentQuestion.options.map((option, index) => {
+                                        let optionStyle = "border-slate-200 hover:border-blue-300 hover:bg-blue-50";
+                                        let icon = null;
+
+                                        if (answers[currentQuestionIndex] !== null) {
+                                            if (index === currentQuestion.correctIndex) {
+                                                optionStyle = "border-green-500 bg-green-50 text-green-800 ring-1 ring-green-500";
+                                                icon = <CheckCircle size={20} className="text-green-600" />;
+                                            } else if (index === selectedOption) {
+                                                optionStyle = "border-red-300 bg-red-50 text-red-800";
+                                                icon = <XCircle size={20} className="text-red-500" />;
+                                            } else {
+                                                optionStyle = "border-slate-100 opacity-50";
+                                            }
+                                        } else if (selectedOption === index) {
+                                            optionStyle = "border-blue-500 bg-blue-50 ring-1 ring-blue-500";
+                                        }
+
+                                        return (
+                                            <button
+                                                key={index}
+                                                onClick={() => handleOptionSelect(index)}
+                                                disabled={answers[currentQuestionIndex] !== null}
+                                                className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex justify-between items-center group ${optionStyle}`}
+                                            >
+                                                <span className="font-medium">{option}</span>
+                                                {icon}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Explanation Section */}
+                                {showExplanation && (
+                                    <div className={`mt-8 p-6 rounded-lg border-l-4 animation-fade-in ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                                        <h3 className={`font-bold mb-2 flex items-center gap-2 ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                                            {isCorrect ? <CheckCircle size={20}/> : <XCircle size={20}/>}
+                                            {isCorrect ? "Correct!" : "Incorrect"}
+                                        </h3>
+                                        <p className="text-slate-700 leading-relaxed">
+                                            {currentQuestion.explanation}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {/* Next Button */}
+                                {showExplanation && (
+                                    <div className="mt-8 flex justify-end">
+                                        <button
+                                            onClick={nextQuestion}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                                        >
+                                            {currentQuestionIndex === questions.length - 1 ? "Finish Assessment" : "Next Question"}
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </div>
+                                )}
+
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

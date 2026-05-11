@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Year 1 Anatomy SBA Exam</title>
+    <style>
+        :root {
+            --primary-color: #005eb8; /* NHS Blue-ish */
+            --secondary-color: #f0f4f8;
+            --text-color: #333;
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header {
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .meta-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .question-block {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e1e4e8;
+            border-radius: var(--border-radius);
+            background-color: #fff;
+            transition: transform 0.2s ease;
+        }
+
+        .question-header {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stem {
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .option-item {
+            margin-bottom: 8px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: background-color 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .option-input {
+            margin-right: 12px;
+            margin-top: 4px;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            display: none;
+            font-size: 0.95em;
+        }
+
+        .correct-answer {
+            color: var(--correct-color);
+            font-weight: bold;
+        }
+
+        .incorrect-answer {
+            color: var(--incorrect-color);
+            font-weight: bold;
+        }
+
+        /* Review Styles */
+        .question-block.correct {
+            border-color: var(--correct-color);
+            background-color: #f0fff4;
+        }
+
+        .question-block.incorrect {
+            border-color: var(--incorrect-color);
+            background-color: #fff5f5;
+        }
+
+        .status-icon {
+            font-size: 1.2em;
+        }
+
+        .controls {
+            margin-top: 40px;
+            text-align: center;
+            position: sticky;
+            bottom: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            backdrop-filter: blur(5px);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: #004494;
+        }
+
+        #score-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Year 1 Anatomy Exam</h1>
+        <div class="meta-info">
+            General • Musculoskeletal • Thoracic • Respiratory • Neuroanatomy<br>
+            30 Questions | Single Best Answer
+        </div>
+    </header>
+
+    <div id="quiz-container">
+        <!-- Questions will be injected here by JS -->
+    </div>
+
+    <div class="controls">
+        <div id="score-display"></div>
+        <button id="submit-btn" onclick="submitQuiz()">Submit Exam</button>
+        <button id="retry-btn" onclick="location.reload()" style="display:none; background-color: #6c757d;">Retake Exam</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            id: 1,
+            stem: "A 25-year-old male is stabbed in the chest during a fight. The knife enters the 4th intercostal space immediately to the left of the sternum. Which layer of the heart's protective covering is located most superficially in the mediastinum and would be pierced first?",
+            options: [
+                "Visceral Pericardium",
+                "Parietal Pericardium",
+                "Fibrous Pericardium",
+                "Myocardium",
+                "Endocardium"
+            ],
+            correctIndex: 2,
+            explanation: "The pericardium consists of the outer Fibrous pericardium and inner Serous pericardium. The Fibrous layer is the most superficial/outermost tough layer."
+        },
+        {
+            id: 2,
+            stem: "A junior doctor is asked to perform a lumbar puncture. At which vertebral level does the adult spinal cord typically terminate (conus medullaris)?",
+            options: [
+                "T12/L1",
+                "L1/L2",
+                "L3/L4",
+                "L5/S1",
+                "S2/S3"
+            ],
+            correctIndex: 1,
+            explanation: "In adults, the spinal cord tapers into the conus medullaris at the level of the L1/L2 vertebral disc."
+        },
+        {
+            id: 3,
+            stem: "A patient presents with a loss of sensation over the umbilicus following a spinal cord injury. Which spinal nerve dermatome typically supplies the skin at the level of the umbilicus?",
+            options: [
+                "T4",
+                "T6",
+                "T8",
+                "T10",
+                "L1"
+            ],
+            correctIndex: 3,
+            explanation: "The T10 dermatome supplies the level of the umbilicus. T4 supplies the nipple line."
+        },
+        {
+            id: 4,
+            stem: "A 3-year-old child is brought to A&E after inhaling a small toy part. A chest X-ray confirms the object is lodged in the right primary bronchus. Which anatomical feature of the right primary bronchus makes it more susceptible to foreign body aspiration compared to the left?",
+            options: [
+                "It is longer and more horizontal",
+                "It is narrower and more oblique",
+                "It is wider, shorter, and more vertical",
+                "It arises from the trachea at a higher vertebral level",
+                "It has a sharper angle of origin"
+            ],
+            correctIndex: 2,
+            explanation: "The right primary bronchus is wider, shorter, and more vertical, making it the path of least resistance for inhaled objects."
+        },
+        {
+            id: 5,
+            stem: "During a surgical procedure on the neck, a surgeon must identify the thyroid gland. In relation to the trachea, where is the thyroid gland anatomically located?",
+            options: [
+                "Posterior to the trachea",
+                "Anterior to the trachea",
+                "Lateral to the sternocleidomastoid muscles",
+                "Superior to the hyoid bone",
+                "Deep to the prevertebral fascia"
+            ],
+            correctIndex: 1,
+            explanation: "The thyroid gland sits in the neck, anterior to the trachea."
+        },
+        {
+            id: 6,
+            stem: "A 50-year-old man is diagnosed with a Pancoast tumour. He presents with Horner's Syndrome (miosis, ptosis). Compression of which anatomical structure by the tumour is responsible for these symptoms?",
+            options: [
+                "Phrenic Nerve",
+                "Vagus Nerve",
+                "Sympathetic Chain",
+                "Recurrent Laryngeal Nerve",
+                "Brachial Plexus"
+            ],
+            correctIndex: 2,
+            explanation: "Pancoast tumours at the lung apex can compress the sympathetic chain, causing Horner's syndrome."
+        },
+        {
+            id: 7,
+            stem: "A medical student is identifying the structures of the thoracic cage. Which of the following anatomical landmarks corresponds to the level of the Sternal Angle (Angle of Louis)?",
+            options: [
+                "The articulation of the 1st rib",
+                "The passing of the inferior vena cava through the diaphragm",
+                "The bifurcation of the trachea (Carina)",
+                "The xiphisternal joint",
+                "The apex of the heart"
+            ],
+            correctIndex: 2,
+            explanation: "The Sternal Angle (T4/T5) marks the 2nd costal cartilage, tracheal bifurcation (Carina), and aortic arch beginning/end."
+        },
+        {
+            id: 8,
+            stem: "A patient requires a chest drain. The drain is inserted in the 'safe triangle'. Which muscle forms the posterior border of the safe triangle?",
+            options: [
+                "Pectoralis Major",
+                "Latissimus Dorsi",
+                "Serratus Anterior",
+                "External Oblique",
+                "Trapezius"
+            ],
+            correctIndex: 1,
+            explanation: "The safe triangle is bordered by Pectoralis Major (anterior), Latissimus Dorsi (posterior), and the base of the axilla (superior)."
+        },
+        {
+            id: 9,
+            stem: "Which embryonic germ layer gives rise to the epithelial lining of the trachea, bronchi, and alveoli?",
+            options: [
+                "Ectoderm",
+                "Neuroectoderm",
+                "Paraxial Mesoderm",
+                "Splanchnic Mesoderm",
+                "Endoderm"
+            ],
+            correctIndex: 4,
+            explanation: "The epithelial lining of the entire respiratory tract is derived from Endoderm."
+        },
+        {
+            id: 10,
+            stem: "A 60-year-old female presents with a hoarse voice following a thyroidectomy. On the left side, the Recurrent Laryngeal Nerve loops under which vascular structure?",
+            options: [
+                "Right Subclavian Artery",
+                "Left Subclavian Artery",
+                "Aortic Arch",
+                "Common Carotid Artery",
+                "Brachiocephalic Trunk"
+            ],
+            correctIndex: 2,
+            explanation: "The Left Recurrent Laryngeal Nerve loops under the Aortic Arch. The Right loops under the Right Subclavian Artery."
+        },
+        {
+            id: 11,
+            stem: "A pathologist identifies an epithelium that is simple squamous in nature, facilitating gas exchange. Which specific part of the respiratory tract is being examined?",
+            options: [
+                "Trachea",
+                "Primary Bronchus",
+                "Terminal Bronchiole",
+                "Alveoli",
+                "Oropharynx"
+            ],
+            correctIndex: 3,
+            explanation: "Type I pneumocytes in the alveoli are simple squamous cells to facilitate diffusion."
+        },
+        {
+            id: 12,
+            stem: "A patient complains of referred pain in the shoulder tip from diaphragm irritation. Which nerve provides the sensory innervation to the central part of the diaphragm?",
+            options: [
+                "Vagus Nerve",
+                "Intercostal Nerve",
+                "Phrenic Nerve",
+                "Supraclavicular Nerve",
+                "Long Thoracic Nerve"
+            ],
+            correctIndex: 2,
+            explanation: "The Phrenic nerve (C3, 4, 5) supplies motor and sensory innervation to the central diaphragm."
+        },
+        {
+            id: 13,
+            stem: "Which major lymphatic vessel drains lymph from the lower limbs, abdomen, and left side of the thorax/head/neck into the venous system?",
+            options: [
+                "Right Lymphatic Duct",
+                "Thoracic Duct",
+                "Cisterna Chyli",
+                "Jugular Lymphatic Trunk",
+                "Bronchomediastinal Trunk"
+            ],
+            correctIndex: 1,
+            explanation: "The Thoracic Duct drains the whole body except the Right Upper Quadrant."
+        },
+        {
+            id: 14,
+            stem: "During a physical exam, a doctor palpates the pulse at the wrist lateral to the flexor carpi radialis tendon. Which artery is being palpated?",
+            options: [
+                "Ulnar Artery",
+                "Radial Artery",
+                "Brachial Artery",
+                "Median Artery",
+                "Anterior Interosseous Artery"
+            ],
+            correctIndex: 1,
+            explanation: "The Radial Artery is located at the wrist, lateral to the flexor carpi radialis tendon."
+        },
+        {
+            id: 15,
+            stem: "An anatomical plane divides the body into unequal left and right portions. What is the correct term for this plane?",
+            options: [
+                "Median Plane",
+                "Mid-sagittal Plane",
+                "Parasagittal Plane",
+                "Coronal Plane",
+                "Transverse Plane"
+            ],
+            correctIndex: 2,
+            explanation: "A parasagittal plane divides the body into unequal left and right parts. The Median plane divides it into equal halves."
+        },
+        {
+            id: 16,
+            stem: "At which vertebral level does the oesophagus typically pass through the diaphragm (oesophageal hiatus)?",
+            options: [
+                "T8",
+                "T9",
+                "T10",
+                "T11",
+                "T12"
+            ],
+            correctIndex: 2,
+            explanation: "Diaphragm apertures: T8 (IVC), T10 (Oesophagus), T12 (Aorta)."
+        },
+        {
+            id: 17,
+            stem: "Which component of the appendicular skeleton does the humerus belong to?",
+            options: [
+                "Pectoral Girdle",
+                "Pelvic Girdle",
+                "Axial Skeleton",
+                "Upper Limb",
+                "Thoracic Cage"
+            ],
+            correctIndex: 3,
+            explanation: "The appendicular skeleton includes the limbs and girdles. The humerus is the bone of the arm (Upper Limb)."
+        },
+        {
+            id: 18,
+            stem: "The intercostal neurovascular bundle runs in the costal groove of the rib. In what order are the structures arranged from superior to inferior?",
+            options: [
+                "Nerve, Artery, Vein",
+                "Artery, Nerve, Vein",
+                "Vein, Artery, Nerve",
+                "Vein, Nerve, Artery",
+                "Nerve, Vein, Artery"
+            ],
+            correctIndex: 2,
+            explanation: "The order in the costal groove from superior to inferior is VAN (Vein, Artery, Nerve)."
+        },
+        {
+            id: 19,
+            stem: "Which of the following joint types is classified as a 'Secondary Cartilaginous' joint (Symphysis)?",
+            options: [
+                "Sutures of the skull",
+                "Glenohumeral joint",
+                "Manubriosternal joint",
+                "Costovertebral joint",
+                "1st Sternocostal joint"
+            ],
+            correctIndex: 2,
+            explanation: "Symphyses are secondary cartilaginous joints found in the midline (e.g., Pubic Symphysis, Manubriosternal)."
+        },
+        {
+            id: 20,
+            stem: "Which muscle layer of the anterolateral abdominal wall is characterised by fibres running inferomedially ('hands in pockets')?",
+            options: [
+                "Rectus Abdominis",
+                "Internal Oblique",
+                "Transversus Abdominis",
+                "External Oblique",
+                "Pyramidalis"
+            ],
+            correctIndex: 3,
+            explanation: "External Oblique fibres run inferomedially (like putting hands in front pockets)."
+        },
+        {
+            id: 21,
+            stem: "On the Left lung, what is the position of the pulmonary artery in relation to the primary bronchus?",
+            options: [
+                "Anterior",
+                "Posterior",
+                "Superior",
+                "Inferior",
+                "Medial"
+            ],
+            correctIndex: 2,
+            explanation: "RALS mnemonic: Right Pulmonary Artery is Anterior; Left Pulmonary Artery is Superior to the bronchus."
+        },
+        {
+            id: 22,
+            stem: "Which of the following paranasal sinuses drains against gravity (ostium is high on the medial wall)?",
+            options: [
+                "Frontal Sinus",
+                "Ethmoid Sinus",
+                "Sphenoid Sinus",
+                "Maxillary Sinus",
+                "Mastoid Air Cells"
+            ],
+            correctIndex: 3,
+            explanation: "The Maxillary Sinus ostium is high on the medial wall, meaning it must drain against gravity."
+        },
+        {
+            id: 23,
+            stem: "What type of cartilage forms the C-shaped rings of the trachea?",
+            options: [
+                "Elastic Cartilage",
+                "Fibrocartilage",
+                "Hyaline Cartilage",
+                "Articular Cartilage",
+                "Calcified Cartilage"
+            ],
+            correctIndex: 2,
+            explanation: "The trachea is supported by C-shaped rings of Hyaline cartilage."
+        },
+        {
+            id: 24,
+            stem: "Which region of the spinal cord contains the cell bodies of the preganglionic sympathetic neurons (Lateral Horn)?",
+            options: [
+                "C1 - C7",
+                "T1 - L2",
+                "C4 - S1",
+                "S2 - S4",
+                "Brainstem only"
+            ],
+            correctIndex: 1,
+            explanation: "The sympathetic outflow (Thoracolumbar) originates from the lateral horn between T1 and L2/L3."
+        },
+        {
+            id: 25,
+            stem: "In which part of the pharynx is the opening of the auditory (Eustachian) tube located?",
+            options: [
+                "Nasopharynx",
+                "Oropharynx",
+                "Laryngopharynx",
+                "Oral Cavity",
+                "Laryngeal Vestibule"
+            ],
+            correctIndex: 0,
+            explanation: "The auditory tube opens into the nasopharynx (posterior to the nasal cavity)."
+        },
+        {
+            id: 26,
+            stem: "Which laryngeal cartilage is described as the only complete ring of cartilage in the airway?",
+            options: [
+                "Thyroid Cartilage",
+                "Cricoid Cartilage",
+                "Epiglottis",
+                "Arytenoid Cartilage",
+                "Cuneiform Cartilage"
+            ],
+            correctIndex: 1,
+            explanation: "The Cricoid Cartilage is the only complete ring (signet-ring shape)."
+        },
+        {
+            id: 27,
+            stem: "What is the specific anatomical name for the recess formed where the costal and diaphragmatic pleurae meet?",
+            options: [
+                "Costomediastinal recess",
+                "Costodiaphragmatic recess",
+                "Retro-oesophageal recess",
+                "Subphrenic space",
+                "Pericardial sinus"
+            ],
+            correctIndex: 1,
+            explanation: "The Costodiaphragmatic recess is where fluid accumulates in the upright position."
+        },
+        {
+            id: 28,
+            stem: "Which structure carries pre-ganglionic (input) fibres from the spinal nerve to the sympathetic ganglion?",
+            options: [
+                "Grey Ramus Communicans",
+                "White Ramus Communicans",
+                "Dorsal Ramus",
+                "Ventral Ramus",
+                "Splanchnic Nerve"
+            ],
+            correctIndex: 1,
+            explanation: "White rami carry pre-ganglionic (myelinated) fibres to the chain. Grey rami carry post-ganglionic fibres away."
+        },
+        {
+            id: 29,
+            stem: "Which cranial nerve carries parasympathetic fibres to the thoracic and abdominal viscera (Heart, Lungs, Gut)?",
+            options: [
+                "Oculomotor (CN III)",
+                "Facial (CN VII)",
+                "Glossopharyngeal (CN IX)",
+                "Vagus (CN X)",
+                "Hypoglossal (CN XII)"
+            ],
+            correctIndex: 3,
+            explanation: "The Vagus nerve (CN X) provides parasympathetic supply to the heart, lungs, and gut."
+        },
+        {
+            id: 30,
+            stem: "In the development of the vertebral column, how many cervical vertebrae are typically present in the human skeleton?",
+            options: [
+                "5",
+                "7",
+                "12",
+                "4",
+                "33"
+            ],
+            correctIndex: 1,
+            explanation: "There are 7 Cervical, 12 Thoracic, and 5 Lumbar vertebrae."
+        }
+    ];
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block';
+            questionBlock.id = `q-${index}`;
+
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                optionsHtml += `
+                    <li class="option-item">
+                        <label class="option-label">
+                            <input type="radio" name="question-${index}" value="${i}" class="option-input">
+                            <span>${opt}</span>
+                        </label>
+                    </li>
+                `;
+            });
+
+            questionBlock.innerHTML = `
+                <div class="question-header">
+                    <span>Question ${index + 1}</span>
+                    <span class="status-icon" id="icon-${index}"></span>
+                </div>
+                <div class="stem">${q.stem}</div>
+                <ul class="options">${optionsHtml}</ul>
+                <div class="explanation" id="exp-${index}">
+                    <strong>Answer: <span class="correct-answer">${q.options[q.correctIndex]}</span></strong>
+                    <br><br>
+                    ${q.explanation}
+                </div>
+            `;
+            container.appendChild(questionBlock);
+        });
+    }
+
+    function submitQuiz() {
+        let score = 0;
+        let allAnswered = true;
+
+        questions.forEach((q, index) => {
+            const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+            const block = document.getElementById(`q-${index}`);
+            const exp = document.getElementById(`exp-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            
+            // Reset classes
+            block.classList.remove('correct', 'incorrect');
+            
+            if (selected) {
+                const userVal = parseInt(selected.value);
+                // Disable inputs
+                const inputs = block.querySelectorAll('input');
+                inputs.forEach(input => input.disabled = true);
+
+                if (userVal === q.correctIndex) {
+                    score++;
+                    block.classList.add('correct');
+                    icon.innerHTML = '✅';
+                    icon.style.color = 'var(--correct-color)';
+                } else {
+                    block.classList.add('incorrect');
+                    icon.innerHTML = '❌';
+                    icon.style.color = 'var(--incorrect-color)';
+                    
+                    // Highlight selected wrong answer
+                    selected.parentElement.classList.add('incorrect-answer');
+                }
+                // Always show explanation after submit
+                exp.style.display = 'block';
+            } else {
+                allAnswered = false;
+            }
+        });
+
+        if (!allAnswered) {
+            const confirmSubmit = confirm("You haven't answered all questions. Submit anyway?");
+            if (!confirmSubmit) return;
+        }
+
+        // Calculate and display score
+        const percentage = Math.round((score / questions.length) * 100);
+        const scoreDisplay = document.getElementById('score-display');
+        scoreDisplay.style.display = 'block';
+        scoreDisplay.innerHTML = `You scored ${score} out of ${questions.length} (${percentage}%)`;
+        
+        if(percentage >= 50) {
+            scoreDisplay.style.color = "var(--correct-color)";
+        } else {
+            scoreDisplay.style.color = "var(--incorrect-color)";
+        }
+
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('retry-btn').style.display = 'inline-block';
+        
+        // Scroll to top to see results
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Updated title from new quiz data -->
+    <title>Y1 Medical Student SBA Quiz - Presentation Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .option-item {
+            border: 2px solid #e5e7eb;
+        }
+        .correct-answer {
+            background-color: #D1FAE5;
+            border-color: #10B981;
+        }
+        .explanation {
+            border-left: 4px solid #3B82F6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto max-w-5xl p-4 md:p-8">
+        
+        <div id="presentation-container" class="bg-white rounded-2xl shadow-lg p-8 md:p-12 min-h-[600px] flex flex-col">
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+            </div>
+
+            <!-- Slides will be injected here -->
+            <div id="slides-wrapper" class="flex-grow"></div>
+            
+            <!-- Navigation -->
+            <div class="flex justify-between items-center mt-8 pt-4 border-t">
+                <button id="prev-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                <div id="slide-counter" class="text-gray-600 font-medium"></div>
+                <button id="next-btn" class="bg-blue-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // --- NEW QUIZ DATA ---
+    // Questions adapted from the new quiz provided
+    const questions = [
+        // Anatomy & Embryology
+        {
+            question: "A surgeon is performing a procedure and makes a horizontal incision that passes through the body, dividing it into superior and inferior parts. This cut allows them to view the liver and stomach in the same cross-sectional view. Which anatomical plane does this incision follow?",
+            options: ["Median (Mid-sagittal) plane", "Parasagittal plane", "Coronal (Frontal) plane", "Transverse (Horizontal) plane", "Oblique plane"],
+            answerIndex: 3,
+            explanation: "The Transverse (Horizontal or Axial) plane divides the body into superior (upper) and inferior (lower) parts, which matches the description."
+        },
+        {
+            question: "A 55-year-old woman presents with significant lymphoedema of her entire left leg and left arm following a complex thoracic procedure. Obstruction of which single lymphatic structure would most likely explain this presentation?",
+            options: ["Right lymphatic duct", "Cisterna chyli", "Thoracic duct", "Axillary lymph nodes", "Inguinal lymph nodes"],
+            answerIndex: 2,
+            explanation: "The Thoracic duct drains the entire lower body (via the cisterna chyli) as well as the left upper limb, left head, neck, and thorax. An obstruction here would affect both the left leg and left arm."
+        },
+        {
+            question: "A patient suffers a complete spinal cord transection at the L4 vertebral level. The spinal origin of which autonomic outflow is entirely superior to this lesion and thus completely spared?",
+            options: ["Sympathetic (Thoracolumbar)", "Parasympathetic (Sacral)", "Parasympathetic (Craniosacral)", "Somatic motor to the lower limbs", "Parasympathetic (Cranial)"],
+            answerIndex: 0,
+            explanation: "The sympathetic nervous system has a 'Thoracolumbar' outflow, with pre-ganglionic cell bodies originating from T1 to L2/3. This is entirely superior to an L4 lesion. The sacral parasympathetic outflow (S2-S4) is inferior and would be cut off from the brain."
+        },
+        {
+            question: "A newborn is diagnosed with spina bifida, a defect where the vertebral canal fails to close over the spinal cord. This congenital anomaly arises from a critical failure during which embryological process and time period?",
+            options: ["Gastrulation (Week 3)", "Neurulation (Weeks 3-4)", "Implantation (Week 2)", "Body folding (Week 4)", "Organogenesis (Week 8)"],
+            answerIndex: 1,
+            explanation: "Neurulation is the formation of the neural tube (which becomes the brain and spinal cord) during weeks 3-4. Failure of the neural tube to close properly leads to defects like spina bifida."
+        },
+        // Histology
+        {
+            question: "A pathologist examines a biopsy from the dermis of the skin. Under the microscope, they observe abundant collagen fibers that are arranged randomly, providing strength against forces from multiple directions. What is the most specific classification for this tissue?",
+            options: ["Dense regular connective tissue", "Loose (areolar) connective tissue", "Dense irregular connective tissue", "Adipose tissue", "Hyaline cartilage"],
+            answerIndex: 2,
+            explanation: "Dense irregular connective tissue is characterized by randomly arranged fibers (unlike the parallel fibers of dense regular CT) and is found in the dermis of the skin."
+        },
+        {
+            question: "A biopsy of the left ventricular wall is examined. The muscle fibers are striated, branched, and contain 1-2 central nuclei. Which unique histological feature confirms this tissue as cardiac muscle?",
+            options: ["Multinucleated cells", "Non-striated fibers", "Spindle-shaped cells", "Intercalated discs", "Peripheral nuclei"],
+            answerIndex: 3,
+            explanation: "While striations and central nuclei are characteristic, the presence of intercalated discs (junctions between cells) is the unique, defining feature of cardiac muscle."
+        },
+        // Genetics & Inheritance
+        {
+            question: "A couple, both of whom are unaffected, have a child with cystic fibrosis. They are planning a second pregnancy. What is the recurrence risk for this autosomal recessive condition in their next child?",
+            options: ["0%", "25%", "33%", "50%", "100%"],
+            answerIndex: 1,
+            explanation: "For an autosomal recessive condition, both parents must be unaffected carriers. Each child of two carrier parents has a 1 in 4 (25%) risk of being affected."
+        },
+        {
+            question: "A 3-year-old child presents with significant developmental delay and dysmorphic features. A standard karyotype analysis comes back as a normal 46,XX. Which genetic test would be most appropriate to detect a small sub-microscopic deletion or duplication (a copy number variant)?",
+            options: ["Array CGH (aCGH)", "Sanger sequencing of a single gene", "MLPA", "Repeat expansion sizing", "A repeat Karyotype"],
+            answerIndex: 0,
+            explanation: "Array CGH (or 'molecular karyotype') is a high-resolution test specifically designed to detect microdeletions and microduplications that are too small to be seen on a standard karyotype."
+        },
+        {
+            question: "A 50-year-old woman is found to have a pathogenic *BRCA1* variant, but she has not developed breast or ovarian cancer. Her sister, who has the same variant, was diagnosed with breast cancer at 42. This phenomenon, where not everyone with the disease-causing genotype manifests the phenotype, is known as:",
+            options: ["Variable expressivity", "Incomplete penetrance", "Anticipation", "De novo mutation", "Haploinsufficiency"],
+            answerIndex: 1,
+            explanation: "Incomplete penetrance describes the likelihood of a phenotype manifesting. When not everyone with the variant gets the disease (like in *BRCA1/2*), it is said to have incomplete penetrance."
+        },
+        // Haematology
+        {
+            question: "A patient's Full Blood Count (FBC) report shows the following: Haemoglobin (Hb) LOW, Mean Corpuscular Volume (MCV) LOW, Mean Corpuscular Haemoglobin (MCH) LOW. This pattern (microcytic, hypochromic anaemia) is most characteristic of which deficiency?",
+            options: ["Vitamin B12", "Folate", "Iron", "Erythropoietin (EPO)", "G-CSF"],
+            answerIndex: 2,
+            explanation: "A low MCV (microcytic - small cells) and low MCH (hypochromic - pale cells) is the classic FBC picture for iron deficiency anaemia. B12 and Folate deficiency cause macrocytic (high MCV) anaemia."
+        },
+        {
+            question: "A 68-year-old man with chronic kidney failure develops anaemia. This is most likely due to the kidneys' failure to produce sufficient amounts of which growth factor?",
+            options: ["Erythropoietin (EPO)", "Thrombopoietin (TPO)", "G-CSF", "IL-12", "IFN-γ"],
+            answerIndex: 0,
+            explanation: "The kidneys are the primary site of Erythropoietin (EPO) production in response to hypoxia. In kidney failure, EPO production is impaired, leading to anaemia as the bone marrow is not stimulated to produce red blood cells."
+        },
+        // Immunology
+        {
+            question: "A tissue macrophage engulfs an extracellular bacterium via phagocytosis. The macrophage will primarily process and present antigens from this bacterium on which molecule, to activate which T-cell type?",
+            options: ["MHC Class I to CD8+ T-cells", "MHC Class II to CD4+ T-cells", "MHC Class I to CD4+ T-cells", "MHC Class II to CD8+ T-cells", "B-Cell Receptor to CD4+ T-cells"],
+            answerIndex: 1,
+            explanation: "Extracellular pathogens (like most bacteria) are processed via the 'Exogenous Pathway' and presented on MHC Class II molecules to CD4+ 'Helper' T-cells."
+        },
+        {
+            question: "A CD8+ Cytotoxic T-Lymphocyte (CTL) identifies a host cell infected with a virus. The CTL initiates apoptosis in the target cell primarily by releasing which combination of molecules?",
+            options: ["IL-4 and IL-10", "Histamine and heparin", "Perforin and granzymes", "Antibodies and complement", "LPS and PAMPs"],
+            answerIndex: 2,
+            explanation: "CD8+ T-cells kill target cells via 'Granule Exocytosis', releasing Perforin (which forms pores) and Granzymes (enzymes that enter through the pores to trigger apoptosis)."
+        },
+        {
+            question: "A melanoma cell is found to have high expression of PD-L1 on its surface. This cell is located within a 'hot' tumour infiltrated by T-cells. What is the primary function of this PD-L1 expression by the tumour cell?",
+            options: ["To attract CD4+ T-cells to the tumour", "To induce apoptosis in the tumour cell itself", "To present neoantigens to dendritic cells", "To bind to PD-1 on T-cells and cause their 'exhaustion'", "To make the tumour cell 'invisible' to NK cells"],
+            answerIndex: 3,
+            explanation: "Tumours exploit immune checkpoints. By expressing PD-L1, the tumour cell binds to the PD-1 receptor on T-cells, sending an inhibitory 'stop' signal that leads to T-cell exhaustion and immune evasion."
+        },
+        // Pathology & Oncology
+        {
+            question: "A breast biopsy reveals malignant cells that have lost E-cadherin expression. These cells are seen invading the surrounding stroma individually, in a characteristic 'single file' pattern. What is the most likely diagnosis?",
+            options: ["Ductal Carcinoma In Situ (DCIS)", "Lobular Carcinoma In Situ (LCIS)", "Invasive Carcinoma, No Special Type (NST)", "Invasive Lobular Carcinoma (ILC)", "Fibroadenoma"],
+            answerIndex: 3,
+            explanation: "The combination of lost E-cadherin and a 'single file' (or 'Indian file') invasive pattern is the classic pathological description of Invasive Lobular Carcinoma (ILC)."
+        },
+        {
+            question: "A breast tumour is sent for biomarker testing. The report shows: ER-positive, PR-positive, HER2-negative, Low Ki-67. This 'Luminal A' molecular subtype has the best prognosis and is primarily treated with which modality?",
+            options: ["Chemotherapy", "Anti-HER2 therapy (e.g., Trastuzumab)", "Endocrine (hormone) therapy (e.g., Tamoxifen)", "Immunotherapy (e.g., Pembrolizumab)", "Palliative radiotherapy only"],
+            answerIndex: 2,
+            explanation: "The Luminal A subtype (ER+/PR+, HER2-, low Ki-67) is hormone-sensitive. It has the best prognosis and is highly responsive to endocrine (hormone) therapy."
+        },
+        {
+            question: "A developing tumour acquires a mutation that inactivates the *TP53* gene. This is a very common event in cancer. This mutation most directly contributes to which hallmark of cancer?",
+            options: ["Inducing angiogenesis", "Sustaining proliferative signalling", "Resisting cell death (apoptosis)", "Enabling replicative immortality", "Deregulating cellular energetics"],
+            answerIndex: 2,
+            explanation: "The *TP53* gene is the 'Guardian of the Genome'. It detects DNA damage and can induce cell cycle arrest or apoptosis. Inactivating *TP53* is a key way cancer cells evade apoptosis, thus 'Resisting Cell Death'."
+        },
+        {
+            question: "A patient with a new colorectal cancer diagnosis undergoes staging. The final report is T1 N0 M0. What is the correct interpretation of this TNM stage?",
+            options: ["A large, locally invasive tumour (T1) with no spread", "A small, minimally invasive tumour (T1) with no regional lymph node (N0) or distant (M0) spread", "A carcinoma in situ (Tis) that has spread to nodes (N1)", "A tumour of any size (T1) that has spread to distant organs (M1)", "A small tumour (T1) with nodal spread (N1) but no distant spread (M0)"],
+            answerIndex: 1,
+            explanation: "T1 indicates a small or early-stage primary tumour. N0 indicates no regional lymph node involvement. M0 indicates no distant metastasis. This represents an early, localized cancer."
+        },
+        // Physiology
+        {
+            question: "A patient in the Emergency Department is found to be hypovolemic (low blood volume) after a haemorrhage. They are given a 1-litre intravenous infusion of 0.9% NaCl (normal saline). This isotonic fluid will primarily expand which body fluid compartment?",
+            options: ["Intracellular Fluid (ICF)", "Extracellular Fluid (ECF)", "Total Body Water (ICF + ECF)", "Plasma only", "Transcellular fluid"],
+            answerIndex: 1,
+            explanation: "0.9% NaCl ('Normal Saline') is an isotonic solution. It has the same effective osmolality as the ECF and does not freely enter cells, so it stays primarily in the Extracellular Fluid (ECF), expanding both the plasma and interstitial volumes."
+        },
+        {
+            question: "A patient is administered a drug that is a selective β1-adrenoceptor agonist. What is the expected primary cardiovascular effect of this drug?",
+            options: ["Bronchodilation", "Decrease in heart rate", "Increase in heart rate and contractility", "Vasoconstriction of blood vessels in the skin", "Miosis (pupil constriction)"],
+            answerIndex: 2,
+            explanation: "β1-adrenoceptors are found primarily on the heart. Stimulating them (agonist) increases both heart rate (chronotropy) and force of contraction (inotropy)."
+        },
+        {
+            question: "The Na+/K+ ATPase is a protein found in the membrane of all animal cells. It actively moves 3 Na+ ions out of the cell and 2 K+ ions into the cell, consuming one molecule of ATP. This mechanism is an example of:",
+            options: ["Simple diffusion", "Facilitated diffusion", "Primary active transport", "Secondary active transport (symport)", "Receptor-mediated endocytosis"],
+            answerIndex: 2,
+            explanation: "Primary active transport is defined as a process that directly uses energy (i.e., ATP hydrolysis) to move solutes against their electrochemical gradient. The Na+/K+ pump is the classic example."
+        },
+        // Nutrition/Biochemistry
+        {
+            question: "Many cancer cells exhibit a high rate of glucose uptake and conversion to lactate, even in the presence of sufficient oxygen. This allows for faster ATP production and provides biosynthetic precursors. What is this metabolic phenomenon known as?",
+            options: ["The Cori Cycle", "The Krebs Cycle", "The Warburg Effect (Aerobic Glycolysis)", "The Pentose Phosphate Pathway", "Gluconeogenesis"],
+            answerIndex: 2,
+            explanation: "The Warburg Effect describes this preference of cancer cells for 'aerobic glycolysis' - producing lactate even when oxygen is available for more efficient oxidative phosphorylation."
+        },
+        {
+            question: "A patient with G6PD deficiency develops acute haemolytic anaemia after taking an oxidant drug. Their red blood cells are unable to cope with the oxidative stress. This is due to a failure to produce sufficient quantities of which crucial molecule?",
+            options: ["ATP", "NADH", "NADPH", "Ribose-5-Phosphate", "Pyruvate"],
+            answerIndex: 2,
+            explanation: "G6PD is the key enzyme in the oxidative stage of the Pentose Phosphate Pathway (PPP). The primary product of this stage is NADPH, which is essential for regenerating the antioxidant glutathione (GSH). Without NADPH, RBCs cannot defend against oxidative stress."
+        },
+        {
+            question: "A patient with colorectal cancer is treated with 5-Fluorouracil (5-FU). This drug is a pyrimidine analogue. 5-FU primarily exerts its anti-cancer effect by inhibiting which enzyme, thereby blocking the synthesis of thymidine (dTMP)?",
+            options: ["Dihydrofolate Reductase (DHFR)", "Thymidylate SynthSBAe", "Ribonucleotide Reductase", "Carbamoyl Phosphate Synthetase II", "Xanthine Oxidase"],
+            answerIndex: 1,
+            explanation: "5-Fluorouracil (5-FU) is metabolized to FdUMP, which forms a stable complex with and inhibits Thymidylate Synthase. This blocks the conversion of dUMP to dTMP, starving the cell of a critical precursor for DNA synthesis."
+        },
+        // Pharmacology
+        {
+            question: "A pharmacologist is testing Drug A. When administered with an agonist, Drug A shifts the agonist's dose-response curve to the right, but the maximum possible response (Emax) is unchanged. Based on this finding, what is Drug A?",
+            options: ["A full agonist", "A partial agonist", "A competitive antagonist", "A non-competitive antagonist", "An inverse agonist"],
+            answerIndex: 2,
+            explanation: "A competitive antagonist binds reversibly to the same site as the agonist. It reduces agonist potency (shifts curve right, requiring more agonist for the same effect) but its effect can be overcome by increasing the agonist concentration, so Emax is unchanged."
+        },
+        {
+            question: "A patient is started on a new drug with an elimination half-life (t½) of 8 hours. They take the drug at a regular dosing interval. Approximately how long will it take for the drug to reach a steady-state (Css) plasma concentration?",
+            options: ["8 hours (1 half-life)", "16 hours (2 half-lives)", "24 hours (3 half-lives)", "32-40 hours (4-5 half-lives)", "48-56 hours (6-7 half-lives)"],
+            answerIndex: 3,
+            explanation: "It takes approximately 4 to 5 elimination half-lives to reach about 94-97% of the steady-state concentration. (4 x 8 = 32 hours; 5 x 8 = 40 hours)."
+        },
+        {
+            question: "A patient having an acute asthma attack is given an inhaled medication that rapidly relieves their bronchoconstriction. This drug, Salbutamol, is an agonist at which specific receptor?",
+            options: ["Muscarinic M3 receptor", "Adrenergic β1 receptor", "Adrenergic β2 receptor", "Adrenergic α1 receptor", "Nicotinic (NG) receptor"],
+            answerIndex: 2,
+            explanation: "Salbutamol is a selective β2-adrenergic agonist. β2 receptors are found on the smooth muscle of the bronchioles, and stimulating them causes relaxation (bronchodilation)."
+        },
+        {
+            question: "A junior doctor is about to prescribe warfarin, a drug with a narrow therapeutic index, for a patient. They need to check the correct starting dose, contraindications, and monitoring requirements. What is the single most essential and practical resource for a UK prescriber in this situation?",
+            options: ["Rang & Dale's Pharmacology textbook", "The British National Formulary (BNF)", "A Patient Information Leaflet (PIL)", "The Summary of Product Characteristics (SPC)", "A colleague's memory"],
+            answerIndex: 1,
+            explanation: "The British National Formulary (BNF) is the key, practical reference for all UK prescribers. It provides concise, up-to-date information on drug selection, dosing, side effects, contraindications, and interactions."
+        },
+        // Psychology & Sociology
+        {
+            question: "A medical student is preparing for their exams. They appraise the situation as a 'challenge' and believe they have the resources (time, notes, ability) to meet it. They subsequently create a detailed study plan. According to the Lazarus & Folkman Transactional Model, this is a clear example of:",
+            options: ["An 'Exhaustion' response", "A 'Harm-Loss' primary appraisal", "Problem-focused coping", "Emotion-focused (avoidant) coping", "A 'Threat' primary appraisal"],
+            answerIndex: 2,
+            explanation: "The student has appraised the stressor as a 'challenge' (Primary Appraisal) and believes they can manage it (Secondary Appraisal). This leads to 'Problem-Focused Coping' – taking direct action (making a study plan) to manage the stressor itself."
+        },
+        {
+            question: "A doctor is reviewing a patient with poorly controlled hypertension. As well as their high blood pressure (biological), the doctor actively asks about the patient's high-stress job (psychological) and their financial worries (social). This holistic approach to a patient's health is best described by which model?",
+            options: ["The Biomedical Model", "The Biopsychosocial Model", "The Transactional Model of Stress", "The General Adaptation Syndrome", "The Sociological Imagination"],
+            answerIndex: 1,
+            explanation: "The Biopsychosocial Model is an approach that recognizes that biological (hypertension), psychological (stress), and social (financial worries) all play a significant role in human health and illness."
+        }
+    ];
+
+    const slidesWrapper = document.getElementById('slides-wrapper');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const slideCounter = document.getElementById('slide-counter');
+    const progressBar = document.getElementById('progress-bar');
+
+    let slides = [];
+    let currentSlideIndex = 0;
+
+    function createSlides() {
+        // Title Slide
+        slides.push(`
+            <div class="slide text-center flex flex-col justify-center h-full">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Y1 Medical Student SBA Quiz</h1>
+                <p class="text-xl text-gray-600">An interactive quiz for classroom presentation.</p>
+            </div>
+        `);
+
+        questions.forEach((q, index) => {
+            // Question Slide
+            let optionsHtml = q.options.map((opt, i) => `
+                <div class="option-item p-4 rounded-lg">
+                    <span class="font-bold mr-3">${String.fromCharCode(65 + i)}.</span>
+                    <span>${opt}</span>
+                </div>
+            `).join('');
+            slides.push(`
+                <div class="slide">
+                    <p class="text-sm text-gray-500 mb-2">Question ${index + 1} of ${questions.length}</p>
+                    <!-- Combined stem and question -->
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-8">${q.question}</h2>
+                    <div class="space-y-4">${optionsHtml}</div>
+                </div>
+            `);
+
+            // Answer Slide
+            let answerOptionsHtml = q.options.map((opt, i) => `
+                <div class="option-item p-4 rounded-lg ${i === q.answerIndex ? 'correct-answer' : ''}">
+                    <span class="font-bold mr-3">${String.fromCharCode(65 + i)}.</span>
+                    <span>${opt}</span>
+                </div>
+            `).join('');
+            slides.push(`
+                <div class="slide">
+                    <p class="text-sm text-green-600 font-semibold mb-2">Answer for Question ${index + 1}</p>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-8">${q.question}</h2>
+                    <div class="space-y-4">${answerOptionsHtml}</div>
+                    <div class="explanation bg-blue-50 p-4 rounded-lg mt-8">
+                        <h4 class="font-bold text-blue-800 mb-2">Explanation</h4>
+                        <p class="text-gray-700">${q.explanation}</p>
+                    </div>
+                </div>
+            `);
+        });
+        
+        // Final Slide
+        slides.push(`
+            <div class="slide text-center flex flex-col justify-center h-full">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">End of Quiz</h1>
+                <p class="text-xl text-gray-600">Thank you for participating.</p>
+            </div>
+        `);
+    }
+
+    function showSlide(index) {
+        slidesWrapper.innerHTML = slides[index];
+        const activeSlide = slidesWrapper.children[0];
+        if (activeSlide) {
+            activeSlide.classList.add('active');
+        }
+        
+        // Update progress bar
+        if (progressBar) {
+            const progressPercent = (index / (slides.length - 1)) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+        }
+
+        // Update counter and buttons
+        slideCounter.textContent = `Slide ${index + 1} of ${slides.length}`;
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentSlideIndex > 0) {
+            currentSlideIndex--;
+            showSlide(currentSlideIndex);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentSlideIndex < slides.length - 1) {
+            currentSlideIndex++;
+            showSlide(currentSlideIndex);
+        }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+            nextBtn.click();
+        } else if (e.key === 'ArrowLeft') {
+            prevBtn.click();
+        }
+    });
+
+    // Initialisation
+    createSlides();
+    showSlide(currentSlideIndex);
+
+</script>
+</body>
+</html>
+
